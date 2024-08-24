@@ -1,12 +1,12 @@
 use anyhow::Result;
-use concurrency::Metrics;
+use concurrency::CmapMetrics;
 use rand::Rng;
 use std::{thread, time::Duration};
 
 const N: usize = 2;
 const M: usize = 4;
 fn main() -> Result<()> {
-    let metrics = Metrics::new();
+    let metrics = CmapMetrics::new();
     for i in 0..N {
         worker1(i, metrics.clone())?;
     }
@@ -21,7 +21,7 @@ fn main() -> Result<()> {
     #[allow(unreachable_code)]
     Ok(())
 }
-fn worker1(_idx: usize, metrics: Metrics) -> Result<()> {
+fn worker1(_idx: usize, metrics: CmapMetrics) -> Result<()> {
     thread::spawn(move || {
         loop {
             metrics.add("req.page.1");
@@ -34,7 +34,7 @@ fn worker1(_idx: usize, metrics: Metrics) -> Result<()> {
     });
     Ok(())
 }
-fn worker2(metrics: Metrics) -> Result<()> {
+fn worker2(metrics: CmapMetrics) -> Result<()> {
     thread::spawn(move || {
         loop {
             let mut rng = rand::thread_rng();
