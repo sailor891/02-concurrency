@@ -1,17 +1,17 @@
 use anyhow::Result;
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]
 pub struct Metrics {
-    pub data: Arc<Mutex<HashMap<String, i64>>>,
+    pub data: Arc<RwLock<HashMap<String, i64>>>,
 }
 impl Metrics {
     pub fn new() -> Self {
         Self {
-            data: Arc::new(Mutex::new(HashMap::new())),
+            data: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
@@ -22,14 +22,14 @@ impl Default for Metrics {
 }
 impl Metrics {
     pub fn add(&self, key: &str) {
-        let mut bind = self.data.lock().unwrap();
+        let mut bind = self.data.write().unwrap();
         let cnt = bind.entry(key.to_string()).or_insert(0);
         *cnt += 1;
     }
     pub fn get(&self, key: &str) -> Result<i64> {
         let bind = self
             .data
-            .lock()
+            .read()
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         match bind.get(key) {
             Some(&value) => Ok(value),
@@ -39,7 +39,7 @@ impl Metrics {
     pub fn get_all(&self) -> Result<HashMap<String, i64>> {
         let bind = self
             .data
-            .lock()
+            .read()
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         Ok(bind.clone())
     }
