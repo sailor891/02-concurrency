@@ -1,17 +1,14 @@
-use anyhow::Result;
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use dashmap::DashMap;
+use std::{fmt, sync::Arc};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Metrics {
-    pub data: Arc<RwLock<HashMap<String, i64>>>,
+    pub data: Arc<DashMap<String, i64>>,
 }
 impl Metrics {
     pub fn new() -> Self {
         Self {
-            data: Arc::new(RwLock::new(HashMap::new())),
+            data: Arc::new(DashMap::new()),
         }
     }
 }
@@ -22,25 +19,17 @@ impl Default for Metrics {
 }
 impl Metrics {
     pub fn add(&self, key: &str) {
-        let mut bind = self.data.write().unwrap();
-        let cnt = bind.entry(key.to_string()).or_insert(0);
+        let mut cnt = self.data.entry(key.to_string()).or_insert(0);
         *cnt += 1;
     }
-    pub fn get(&self, key: &str) -> Result<i64> {
-        let bind = self
-            .data
-            .read()
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-        match bind.get(key) {
-            Some(&value) => Ok(value),
-            None => Err(anyhow::anyhow!("key not found")),
+}
+impl fmt::Display for Metrics {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut s = String::new();
+        for entry in self.data.iter() {
+            s += &format!("{}:{}\n", entry.key(), entry.value());
         }
-    }
-    pub fn get_all(&self) -> Result<HashMap<String, i64>> {
-        let bind = self
-            .data
-            .read()
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-        Ok(bind.clone())
+        write!(f, "{}", s)?;
+        Ok(())
     }
 }

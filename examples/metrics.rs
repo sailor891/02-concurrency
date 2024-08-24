@@ -16,7 +16,7 @@ fn main() -> Result<()> {
 
     loop {
         thread::sleep(Duration::from_secs(1));
-        println!("{:?}", metrics.get_all()?);
+        println!("{}", metrics);
     }
     #[allow(unreachable_code)]
     Ok(())
